@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Suno Auto-Lyric Generator + TKaraoke + MP3
+// @name         Suno Auto-Lyric Generator + TKaraoke + MP3 v2
 // @namespace    http://tampermonkey.net/
-// @version      6.0
+// @version      6.1
 // @description  AI generate lyrics, TKaraoke scrape, MP3 download for Suno
 // @match        https://suno.com/*
 // @grant        GM_xmlhttpRequest
@@ -12,31 +12,64 @@
 // @connect      generativelanguage.googleapis.com
 // @connect      openrouter.ai
 // ==/UserScript==
-
+// credit to @ https://8a5.com
 (function() {
     'use strict';
 
     const CONFIG = {
-        AI_PROVIDER: 'gemini',
-        GEMINI_API_KEY: 'YOUR_GEMINI_API_KEY_HERE',
-        GEMINI_MODEL: 'gemini-2.0-flash-exp',
-        OPENROUTER_API_KEY: 'YOUR_OPENROUTER_API_KEY_HERE',
-        OPENROUTER_MODEL: 'google/gemini-2.0-flash-exp:free',
+        AI_PROVIDER: 'gemini', /// default 
+        GEMINI_API_KEY: 'GEMINI_API_KEY', ///enter you gemini key
+        GEMINI_MODEL: 'gemini-2.0-flash-exp',  // ✅ Fixed model name
+        OPENROUTER_API_KEY: 'OPENROUTER_API_KEY',  /// set operouter api key
+        OPENROUTER_MODEL: 'x-ai/grok-4.1-fast',
         TKARAOKE_BASE: 'https://lyric.tkaraoke.com',
         PROXY: 'https://corsproxy.io/?',
         DELAY_BETWEEN_SONGS: 6000,
 
         VIETNAMESE_STYLES: {
-            tinhca: "Vietnamese Ballad, emotional vocals, grand piano, violin strings, studio quality, professional mixing, warm reverb, cinematic production",
-            bolero: "Vietnamese Bolero, nostalgic vocals, classical guitar, gentle percussion, romantic atmosphere, vintage recording, smooth delivery",
-            trutinhque: "Vietnamese Traditional Folk, acoustic guitar, traditional instruments, countryside atmosphere, warm vocals, cultural heritage",
-            nhactre: "Modern Vietnamese Pop, catchy melody, synth production, bright vocals, radio-ready, trendy beat, K-pop influence",
-            nhacvang: "Classic Vietnamese Pop, warm vocals, orchestral arrangement, timeless melody, golden era sound, professional mixing",
-            vpopedm: "Vietnamese EDM Pop, energetic vocals, festival drop, synthesizer leads, pumping bass, party anthem, club-ready",
-            rapviet: "Vietnamese Hip-Hop, confident flow, boom bap drums, jazzy samples, underground vibe, punchy bass, raw energy",
-            indie: "Vietnamese Indie, gentle vocals, acoustic guitar, lo-fi production, intimate feel, bedroom pop aesthetic, minimalist",
-            rnb: "Vietnamese R&B, smooth vocals, soulful delivery, neo-soul production, jazzy chords, groovy bass, modern feel"
+            tinhca: "Vietnamese emotional ballad, expressive heartfelt vocals, grand piano lead, cinematic string orchestra, slow tempo, clear verse-chorus structure, intimate to powerful dynamic build, warm reverb, high-quality studio mix, emotional climax",
+
+            bolero: "Vietnamese bolero, nostalgic romantic vocals, classical guitar main, soft brushed percussion, slow tempo, vintage warm tone, clear storytelling melody, smooth phrasing, intimate emotional performance",
+
+            trutinhque: "Vietnamese traditional folk ballad, warm natural vocals, acoustic guitar and traditional instruments, rural countryside atmosphere, simple melody, organic acoustic arrangement, emotional and authentic",
+
+            nhactre: "Modern Vietnamese pop (V-Pop), bright youthful vocals, catchy topline melody, polished synth production, trendy pop beat, strong chorus hook, radio-ready structure, clean commercial mix",
+
+            nhacvang: "Classic Vietnamese pop (Nhạc Vàng), warm emotional vocals, orchestral arrangement, timeless romantic melody, slow to mid tempo, clear verse-chorus form, golden era sound, clean professional mix",
+
+            vpopedm: "Vietnamese EDM pop, energetic powerful vocals, uplifting pre-chorus, big festival drop, modern synth leads, deep pumping bass, build-drop structure, high-energy club-ready mix",
+
+            rapviet: "Vietnamese hip-hop rap, confident rhythmic flow, modern trap or boom bap beat, punchy drums, strong bass, clear vocal presence, verse-focused structure, raw street energy",
+
+            indie: "Vietnamese indie pop, soft intimate vocals, acoustic guitar or lo-fi keys, minimal arrangement, bedroom pop aesthetic, relaxed tempo, emotional closeness, warm lo-fi mix",
+
+            rnb: "Vietnamese R&B, smooth soulful vocals, emotional melodic runs, jazzy neo-soul chords, groovy bassline, laid-back tempo, modern clean R&B production",
+
+            folktronica: "Vietnamese folktronica, traditional folk melodies fused with modern electronic, dan bau and ethnic instruments with synth layers, tribal percussion, cinematic atmosphere, mid-tempo 100–110 BPM, modern hybrid production",
+
+            vpopdream: "Vietnamese dream pop shoegaze, airy ethereal vocals, lush reverb guitar layers, shimmering synth pads, slow dreamy tempo 70–85 BPM, emotional atmospheric soundscape, soft and intimate mood",
+
+            rapdiss: "Vietnamese rap diss battle track, aggressive confident delivery, dark hard trap beat, heavy 808 bass, sharp hi-hats, dramatic tension build, confrontational energy, punchy dry vocal mix",
+
+            latinvpop: "Vietnamese Latin pop fusion, reggaeton or dembow rhythm, catchy rhythmic vocals, Spanish guitar flavor, tropical percussion, danceable groove, summer party vibe, 95–105 BPM",
+
+            acousticvpop: "Modern Vietnamese acoustic pop, clean fingerstyle acoustic guitar, warm close-up vocals, light piano and strings, emotional storytelling, slow to mid tempo 75–90 BPM, intimate studio acoustic mix",
+
+            rockviet_classic: "Vietnamese classic Melancholic rock ballad, powerful raspy male vocals, introspective electric guitar riffs, driving drums and bass, anthemic chorus, 90s–2000s Vietnamese rock influence,  mid-tempo 110–130 BPM",
+
+            rockdanca: "Vietnamese folk rock fusion, emotional narrative vocals, traditional folk melodies with electric guitar, acoustic textures, cultural depth, warm analog rock production, mid-tempo 95–110 BPM",
+
+            altrock: "Vietnamese alternative rock, introspective raspy male or female vocals, jangly guitars, atmospheric synth layers, emotional verse-driven structure, indie underground vibe, mid-tempo 100–120 BPM",
+
+            hardrock: "Vietnamese hard rock, aggressive powerful vocals, heavy distorted guitars, pounding drums, fast guitar solos, high-energy performance, thick punchy rock mix, 130–150 BPM",
+
+            indierock: "Vietnamese indie rock, youthful energetic vocals, clean electric guitar hooks, catchy chorus, modern indie production, emotional yet upbeat feel, 115–135 BPM",
+
+            postrock: "Vietnamese cinematic post-rock, mostly instrumental, slow emotional build-up, ambient guitars, swelling strings, gradual intensity rise, epic climax, wide atmospheric reverb, 80–100 BPM",
+
+            metalcore: "Vietnamese metalcore, aggressive screamed verses with melodic clean chorus, heavy breakdown riffs, tight double-kick drums, djent-influenced guitars, intense modern metal production, fast tempo 140–170 BPM"
         }
+
     };
 
     class SunoAIGenerator {
@@ -164,6 +197,18 @@
                                     <option value="rapviet">Rap Việt</option>
                                     <option value="indie">Indie</option>
                                     <option value="rnb">R&B/Soul</option>
+                                    <option value="folktronica">Folktronica (Dân ca điện tử)</option>
+                                    <option value="rockdanca">Rock Dân Ca</option>
+                                    <option value="rapdiss">Rap Diss</option>
+                                    <option value="rockviet_classic">Rock Việt Classic</option>
+                                    <option value="altrock">Alternative Rock Việt</option>
+                                    <option value="vpopdream">Dream Pop / Shoegaze V-Pop</option>
+                                    <option value="latinvpop">Latin V-Pop Fusion</option>
+                                    <option value="acousticvpop">Acoustic V-Pop</option>
+                                    <option value="hardrock">Hard Rock Việt</option>
+                                    <option value="indierock">Indie Rock Việt</option>
+                                    <option value="postrock">Post-Rock Cinematic Việt</option>
+                                    <option value="metalcore">Metalcore / Modern Metal Việt</option>
                                 </select>
                                 <button id="sg-inject-style-btn" style="padding: 10px 14px; background: #f59e0b;
                                         border: none; border-radius: 6px; color: white; font-weight: 600;
@@ -421,7 +466,26 @@
             this.updateStatus(`🔄 Generating...`);
 
             try {
-                const systemPrompt = `Viết ${count} lời bài hát Việt Nam về: ${prompt}\n\nCẤU TRÚC: [Intro][Verse 1][Chorus][Verse 2][Chorus][Bridge][Outro]\nPHÂN CÁCH: ###SONG_SPLIT###`;
+                const systemPrompt = `
+Viết lời bài hát tiếng Việt ${count} bài theo chủ đề: ${prompt}
+
+YÊU CẦU BẮT BUỘC:
+- 100% lời Việt, tự nhiên, có vần điệu, lời nhạc cuốn hút và vần âm điệu
+- Cấu trúc: [Intro] [Verse 1] [Pre-Chorus] [Chorus] [Verse 2] [Chorus] [Bridge] [Chorus] [Outro].
+   - Add descriptive musical cues INSIDE the tags, e.g., [Verse 1: Raspy vocals, steady rhythm guitar], guiding elements like vocals, instruments, builds, effects, or SFX (e.g., rain, wind) that match the theme.
+   - Ensure a logical flow from Intro to Outro.
+- Mỗi bài 16-24 câu, cân đối giữa verse và chorus
+- Chorus phải catchy, dễ nhớ, lặp lại được, dễ viral trên tiktok
+- Sử dụng hình ảnh thơ mộng, cảm xúc sâu sắc
+- Để tên bài hát vào trong tag . ví dụ : [ tên bài hát ]
+PHONG CÁCH LỜI:
+- Ballad: Tâm trạng, day dứt, hình ảnh mưa/đêm/ly biệt, hận, yêu , nhớ, giá như,....
+- V-Pop: Năng động, tích cực, về tuổi trẻ/tình yêu/ước mơ
+- Rap: Chơi chữ, so sánh, storytelling, flow mạnh mẽ
+- Indie: Tối giản, chân thật, góc nhìn đời thường
+
+Chỉ output lời bài hát từ intro cho tới outro. Mỗi bài cách nhau bằng: ###SONG_SPLIT###
+                `;
 
                 let fullText;
                 if (CONFIG.AI_PROVIDER === 'gemini') {
@@ -432,12 +496,64 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 contents: [{ parts: [{ text: systemPrompt }] }],
-                                generationConfig: { temperature: 0.95, maxOutputTokens: 8192 }
+                                generationConfig: {
+                                    temperature: 0.95,
+                                    maxOutputTokens: 8192
+                                },
+                                safetySettings: [
+                                    {
+                                        category: "HARM_CATEGORY_HARASSMENT",
+                                        threshold: "BLOCK_NONE"
+                                    },
+                                    {
+                                        category: "HARM_CATEGORY_HATE_SPEECH",
+                                        threshold: "BLOCK_NONE"
+                                    },
+                                    {
+                                        category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                                        threshold: "BLOCK_NONE"
+                                    },
+                                    {
+                                        category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                                        threshold: "BLOCK_NONE"
+                                    }
+                                ]
                             })
                         }
                     );
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Gemini API error (${response.status}): ${errorText}`);
+                    }
+
                     const data = await response.json();
-                    fullText = data.candidates[0].content.parts[0].text;
+
+                    // ✅ Comprehensive error checking
+                    if (!data.candidates || data.candidates.length === 0) {
+                        console.error('Gemini response:', data);
+                        throw new Error('Gemini blocked the request. Try a different prompt or use OpenRouter.');
+                    }
+
+                    const candidate = data.candidates[0];
+
+                    // Check for blocking
+                    if (candidate.finishReason === 'SAFETY' || candidate.finishReason === 'RECITATION') {
+                        throw new Error(`Content blocked: ${candidate.finishReason}. Try OpenRouter instead.`);
+                    }
+
+                    // Check for content
+                    if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
+                        console.error('Gemini candidate:', candidate);
+                        throw new Error('Gemini returned empty response. Try again or use OpenRouter.');
+                    }
+
+                    fullText = candidate.content.parts[0].text;
+
+                    if (!fullText || fullText.trim().length === 0) {
+                        throw new Error('Gemini returned empty text. Try OpenRouter instead.');
+                    }
+
                 } else {
                     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                         method: 'POST',
@@ -458,12 +574,18 @@
                     .map(l => l.trim())
                     .filter(l => l.length > 50)
                     .slice(0, count)
-                    .map((lyrics, idx) => ({ title: `Bài ${idx + 1}`, lyrics, isGenerated: true }));
+                    //.map((lyrics, idx) => ({ title: `Bài ${idx + 1}`, lyrics, isGenerated: true }));
+                    .map(lyrics => {
+                    const title = lyrics.split('\n')[0].trim();
+                    return { title, lyrics, isGenerated: true };
+                });
+
 
                 this.displaySongList(this.generatedLyrics);
                 this.updateStatus(`✅ Generated ${this.generatedLyrics.length} lyrics!`);
                 document.getElementById('sg-action-buttons').style.display = 'flex';
             } catch (error) {
+                console.error('Generation error:', error);
                 this.updateStatus(`❌ ${error.message}`, true);
             }
         }
@@ -734,15 +856,19 @@
             // Strategy 2: Find the tallest textarea without maxlength
             if (!textarea) {
                 const textareas = Array.from(document.querySelectorAll('textarea'));
-                textarea = textareas
-                    .filter(ta => !ta.maxLength && ta.offsetParent !== null)
-                    .sort((a, b) => b.offsetHeight - a.offsetHeight)[0];
+                const filtered = textareas.filter(ta => !ta.maxLength && ta.offsetParent !== null);
+                if (filtered.length > 0) {
+                    textarea = filtered.sort((a, b) => b.offsetHeight - a.offsetHeight)[0];
+                }
             }
 
             // Strategy 3: Find by common height (Suno's lyric box is usually 200-400px)
             if (!textarea) {
-                textarea = Array.from(document.querySelectorAll('textarea'))
-                    .find(ta => ta.offsetHeight > 150 && ta.offsetHeight < 500);
+                const candidates = Array.from(document.querySelectorAll('textarea'))
+                    .filter(ta => ta.offsetHeight > 150 && ta.offsetHeight < 500);
+                if (candidates.length > 0) {
+                    textarea = candidates[0];
+                }
             }
 
             if (!textarea) {
@@ -868,7 +994,7 @@
 })();
 
 
-////lrc
+///lrc download
 
 
 
@@ -1051,4 +1177,3 @@
 
     setTimeout(main, 5000);
 })();
-

@@ -1013,49 +1013,55 @@ Chỉ output lời bài hát từ intro cho tới outro. Mỗi bài cách nhau b
     }
 
     // ================= MERGED LRC (MUST BE ABOVE BUTTON) =================
-    function convertToMergedLRC(alignedWords, gapMs = 600, maxWords = 12) {
+    function convertToMergedLRC(alignedWords, gapMs = 700, maxWords = 10) {
         let result = [];
         let lineText = '';
         let lineTime = null;
-        let lastEnd = null;
+        let lastStart = null;
         let wordCount = 0;
-
+    
         alignedWords.forEach(word => {
             const startMs = word.start_s * 1000;
             const cleanWord = String(word.word || '')
-            .replace(/\[.*?\]/g, '')
-            .trim();
-
+                .replace(/\[.*?\]/g, '')
+                .trim();
+    
+            if (!cleanWord) {
+                lastStart = startMs;
+                return;
+            }
+    
             const isNewLineByGap =
-                  lastEnd !== null && startMs - lastEnd > gapMs;
-
-            const isPunctuationEnd = /[.!?,…]$/.test(lineText);
+                lastStart !== null && startMs - lastStart > gapMs;
+    
             const isTooLong = wordCount >= maxWords;
-
-            if (lineText && (isNewLineByGap || isPunctuationEnd || isTooLong)) {
+    
+            if (lineText && (isNewLineByGap || isTooLong)) {
                 result.push(`${lineTime} ${lineText.trim()}`);
                 lineText = '';
                 wordCount = 0;
             }
-
+    
             if (!lineText) {
-                lineTime = formatLrcTime(word.start_s); // ✅ ONE timestamp
+                lineTime = formatLrcTime(word.start_s);
                 lineText = cleanWord;
                 wordCount = 1;
             } else {
                 lineText += ' ' + cleanWord;
                 wordCount++;
             }
-
-            lastEnd = word.end_s * 1000;
+    
+            lastStart = startMs;
         });
-
+    
         if (lineText) {
             result.push(`${lineTime} ${lineText.trim()}`);
         }
-
-        return result.join('\n');
+    
+        // empty line between lyric lines
+        return result.join('\n\n');
     }
+
 
     // ================= FETCH =================
     async function fetchAlignedWords(songId, token) {

@@ -18,11 +18,11 @@
 
     const CONFIG = {
         AI_PROVIDER: 'gemini', /// default 
-        GEMINI_API_KEY: 'GEMINI_API_KEY', ///enter you gemini key
+        GEMINI_API_KEY: 'GEMINI_API_KEY', ///enter your gemini key
         GEMINI_MODEL: 'gemini-2.0-flash-exp',  // ✅ Fixed model name
         OPENROUTER_API_KEY: 'OPENROUTER_API_KEY',  /// set operouter api key
         OPENROUTER_MODEL: 'x-ai/grok-4.1-fast',
-        TKARAOKE_BASE: 'https://lyric.tkaraoke.com',
+        TKARAOKE_BASE: 'https://lyric.tkaraoke.com', ///để tham khảo, ae tôn trọng, không auto fetch data của tkaraoke
         PROXY: 'https://corsproxy.io/?',
         DELAY_BETWEEN_SONGS: 6000,
 

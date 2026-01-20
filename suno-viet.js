@@ -1059,7 +1059,7 @@ Chỉ output lời bài hát từ intro cho tới outro. Mỗi bài cách nhau b
         }
     
         // empty line between lyric lines
-        return result.join('\n\n');
+        return result.join('\n');
     }
 
 

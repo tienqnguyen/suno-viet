@@ -4,7 +4,9 @@
 
 **Suno Power Tools** là bộ userscript mạnh mẽ dành cho [Suno.com](https://suno.com), giúp tự động hóa quy trình sáng tác nhạc bằng cách tích hợp trực tiếp nguồn nhạc từ **NhacCuaTui (NCT)**, **TKaraoke**, và **AI Lyrics Generation**.
 
-Không còn copy-paste thủ công. Không còn lo tìm file MP3 gốc. Tất cả trong một bảng điều khiển nổi ngay trên giao diện Suno.
+Không còn copy-paste thủ công. Không còn lo tìm file MP3 gốc. Tất cả trong một bảng điều khiển nổi ngay trên giao diện Suno. Gần hết tháng mà còn nhiều Credit >>> Đây là tool mà bạn cần
+
+<img width="2537" height="1937" alt="image" src="https://github.com/user-attachments/assets/ff0dbc6c-7b56-40bf-8c69-91c0095be1a6" />
 
 ---
 
@@ -37,7 +39,8 @@ Không còn copy-paste thủ công. Không còn lo tìm file MP3 gốc. Tất c�
 
 ### Bước 1: Cài đặt Script
 Tạo một script mới trong Tampermonkey và copy đoạn mã nguồn mới nhất (v1.8) vào.
-
+Có 2 file js đi kèm.
+Nếu dùng API thì nhớ chỉnh API key và chỉnh PROMPT / STYLE theo ý bạn từ JS file để ra nhạc hay nhất có thể. (default được tạo bằng bot nên chưa chuẩn)
 ### Bước 2: Cấp quyền (Quan trọng)
 Script cần kết nối đến `nhaccuatui.com` và `corsproxy.io` để vượt qua cơ chế bảo mật trình duyệt.
 Khi chạy lần đầu, Tampermonkey sẽ hỏi quyền:

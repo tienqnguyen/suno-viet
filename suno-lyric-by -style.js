@@ -121,7 +121,7 @@
                 <div id="sslg-header">🎵 Lyric Generator</div>
 
                 <textarea id="sslg-topic"
-                    placeholder="Keywords / chủ đề bài hát..."
+                    placeholder="Keywords / chủ đề bài hát, lời nhạc mẫu..."
                     style="width:100%;height:60px;margin-bottom:6px"></textarea>
 
                 <input id="sslg-count" type="number" min="1" max="20" value="5"

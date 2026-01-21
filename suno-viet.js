@@ -759,7 +759,7 @@ Chỉ output lời bài hát từ intro cho tới outro. Mỗi bài cách nhau b
                 await this.navigateToCustomMode();
                 await this.injectTitle(song.title);
                 await this.injectLyric(song.lyrics);
-                await this.setMusicStyle(style);
+               // await this.setMusicStyle(style);
                 this.updateStatus(`✅ Injected: ${song.title}`);
             } catch (error) {
                 this.updateStatus(`❌ ${error.message}`, true);

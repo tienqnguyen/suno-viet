@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,8 +12,10 @@
       --text-color: #c9d1d9;
       --heading-color: #f0f6fc;
       --link-color: #58a6ff;
-      --code-bg: #161b22;
+      --code-bg: #000000;
       --quote-border: #3fb950;
+      --button-bg: #238636;
+      --button-hover-bg: #2ea043;
     }
 
     body {
@@ -52,7 +54,7 @@
     }
 
     pre {
-      background-color: #000000;
+      background-color: var(--code-bg);
       color: #e6edf3;
       padding: 1rem;
       border-radius: 6px;
@@ -83,33 +85,69 @@
     li {
       margin-bottom: 0.3em;
     }
+
+    .bookmarklet-container {
+      margin: 2rem 0;
+      padding: 1rem;
+      border: 2px dashed var(--border-color);
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .bookmarklet-button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: var(--button-bg);
+      color: #ffffff;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: grab;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+
+    .bookmarklet-button:hover {
+      background-color: var(--button-hover-bg);
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
-
   <h1>Suno Lyrics LRC/SRT Downloader</h1>
-  <p>A browser-console JavaScript snippet and bookmarklet for downloading Suno aligned lyrics as raw LRC, formatted merged LRC, or SRT.</p>
+  <p>Một công cụ JavaScript và Bookmarklet để tải lời bài hát đã đồng bộ từ Suno dưới dạng tệp LRC (raw hoặc định dạng) hoặc SRT.</p>
 
   <blockquote>
-    <strong>Use only on a Suno page where you are signed in.</strong> The script uses the current page session and does not send credentials to a third-party service.
+    <strong>Lưu ý quan trọng:</strong>
+    <ul>
+      <li>Bạn phải đăng nhập vào tài khoản Suno của mình trên trình duyệt để Bookmarklet hoạt động.</li>
+      <li>Tệp tin lời bài hát sẽ được tải trực tiếp từ máy của bạn, không qua bất kỳ dịch vụ bên thứ ba nào.</li>
+    </ul>
   </blockquote>
 
-  <h2>Features</h2>
-  <ul>
-    <li>Downloads word-level aligned lyrics as <code>.lrc</code>.</li>
-    <li>Downloads grouped, readable lyrics as <code>.formatted.lrc</code>.</li>
-    <li>Downloads word-level timestamps as <code>.srt</code>.</li>
-    <li>Works without Tampermonkey.</li>
-    <li>Can run from DevTools Console or as a bookmarklet.</li>
-  </ul>
+  <h2>Hướng dẫn sử dụng Bookmarklet</h2>
+  <ol>
+    <li>Đảm bảo thanh dấu trang của trình duyệt của bạn đang hiển thị.
+      <ul>
+        <li>Trên Windows/Linux: Nhấn `Ctrl + Shift + B`</li>
+        <li>Trên macOS: Nhấn `Cmd + Shift + B`</li>
+      </ul>
+    </li>
+    <li>Kéo và thả nút màu xanh dưới đây lên thanh dấu trang của bạn.</li>
+    <li>Truy cập trang bài hát trên Suno (ví dụ: `https://suno.com/song/...`).</li>
+    <li>Nhấn vào Bookmarklet bạn vừa thêm trên thanh dấu trang.</li>
+    <li>Các nút tải lời bài hát sẽ xuất hiện ở góc dưới bên phải màn hình.</li>
+  </ol>
 
-  <h2>Console Snippet</h2>
-  <p>Open the Suno song page, open DevTools, select <strong>Console</strong>, and paste this script:</p>
+  <div class="bookmarklet-container">
+    <a class="bookmarklet-button" href="javascript:(function(){'use strict';const RAW_FILE_TYPE='lrc',UI_ID='suno-lyrics-download-tools';function getCookie(e){const t=`; ${document.cookie}`.split(`; ${e}=`);return t.length>1?t.pop().split(';')[0]:null}function formatSrtTime(e){const t=new Date(0);return t.setMilliseconds(1e3*Number(e||0)),[String(t.getUTCHours()).padStart(2,'0'),String(t.getUTCMinutes()).padStart(2,'0'),String(t.getUTCSeconds()).padStart(2,'0')].join(':')+`,${String(t.getUTCMilliseconds()).padStart(3,'0')}`}function formatLrcTime(e){const t=new Date(0);return t.setMilliseconds(1e3*Number(e||0)),`[${String(t.getUTCMinutes()).padStart(2,'0')}:${String(t.getUTCSeconds()).padStart(2,'0')}.${String(Math.floor(t.getUTCMilliseconds()/10)).padStart(2,'0')}]`}function cleanWord(e){return String(e||'').replace(/\[.*?\]/g,'').trim()}function toRawLrc(e){return e.map((e=>`${formatLrcTime(e.start_s)}${cleanWord(e.word)}`)).join('\n')}function toSrt(e){return e.map(((e,t)=>[t+1,`${formatSrtTime(e.start_s)} --> ${formatSrtTime(e.end_s)}`,cleanWord(e.word),''].join('\n'))).join('\n')}function toFormattedLrc(e,t=700,n=10){const o=[];let r='',s=null,a=null,i=0;for(const c of e){const e=1e3*Number(c.start_s||0),l=cleanWord(c.word);if(l){const u=null!==a&&e-a>t,g=i>=n;r&&(u||g)&&(o.push(`${s}${r}`),r='',i=0),r?r+=` ${l}`:(s=formatLrcTime(c.start_s),r=l),i+=1,a=e}else a=e}return r&&o.push(`${s}${r}`),o.join('\n')}function downloadText(e,t){const n=new Blob([e],{type:'text/plain;charset=utf-8'}),o=URL.createObjectURL(n),r=document.createElement('a');r.href=o,r.download=t,r.style.display='none',document.body.appendChild(r),r.click(),setTimeout((()=>{URL.revokeObjectURL(o),r.remove()}),500)}async function fetchAlignedWords(e,t){const n=`https://studio-api.prod.suno.com/api/gen/${e}/aligned_lyrics/v2/`,o=t?{Authorization:`Bearer ${t}`,'Content-Type':'application/json'}:{},r=await fetch(n,{method:'GET',headers:o,credentials:'include'});if(!r.ok)throw new Error(`Aligned lyrics request failed: HTTP ${r.status}`);return(await r.json())?.aligned_words||[]}function makeButton(e,t,n){const o=document.createElement('button');return o.textContent=e,o.type='button',o.style.cssText=['padding:10px 12px','border:0','border-radius:8px',`background:${t}`,'color:#fff','font:600 14px system-ui,sans-serif','cursor:pointer','box-shadow:0 4px 12px rgba(0,0,0,.2)'].join(';'),o.addEventListener('click',n),o}async function init(){try{const e=location.pathname.split('/').filter(Boolean).pop(),t=getCookie('__session');if(!e)throw new Error('Không tìm thấy ID bài hát từ URL.');const n=await fetchAlignedWords(e,t);if(!n.length)throw new Error('Bài hát này chưa có dữ liệu aligned lyrics.');document.getElementById(UI_ID)?.remove();const o=document.createElement('div');o.id=UI_ID,o.style.cssText=['position:fixed','right:16px','bottom:16px','z-index:999999','display:flex','flex-direction:column','gap:8px'].join(';'),o.appendChild(makeButton(`Download ${RAW_FILE_TYPE.toUpperCase()}`,'#4b5563',(()=>{downloadText('srt'===RAW_FILE_TYPE?toSrt(n):toRawLrc(n),`${e}.${RAW_FILE_TYPE}`)}))),o.appendChild(makeButton('Download Formatted LRC','#2563eb',(()=>{downloadText(toFormattedLrc(n),`${e}.formatted.lrc`)}))),o.appendChild(makeButton('Download SRT','#0f766e',(()=>{downloadText(toSrt(n),`${e}.srt`)}))),document.body.appendChild(o)}catch(e){console.error(e),alert(`Lỗi: ${e.message}`)}}init();})();">Kéo tôi lên thanh dấu trang</a>
+  </div>
 
+  <h2>Mã JavaScript (dành cho Console)</h2>
+  <p>Nếu bạn không muốn sử dụng Bookmarklet, bạn có thể dán mã này vào Console của DevTools trên trang bài hát:</p>
   <pre><code>(async function () {
   'use strict';
 
-  const RAW_FILE_TYPE = 'lrc'; // Change to 'srt' for raw SRT download.
+  const RAW_FILE_TYPE = 'lrc'; // Đổi thành 'srt' để tải tệp raw dạng SRT.
   const UI_ID = 'suno-lyrics-download-tools';
 
   function getCookie(name) {
@@ -130,7 +168,9 @@
   function formatLrcTime(seconds) {
     const date = new Date(0);
     date.setMilliseconds(Number(seconds || 0) * 1000);
-    return `[${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')}.${String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0')}]`;
+    return `[${String(date.getUTCMinutes()).padStart(2, '0')}:${String(
+      date.getUTCSeconds()
+    ).padStart(2, '0')}.${String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0')}]`;
   }
 
   function cleanWord(value) {
@@ -144,14 +184,16 @@
   }
 
   function toSrt(words) {
-    return words.map((word, index) => {
-      return [
-        index + 1,
-        `${formatSrtTime(word.start_s)} -->${formatSrtTime(word.end_s)}`,
-        cleanWord(word.word),
-        '',
-      ].join('\n');
-    }).join('\n');
+    return words
+      .map((word, index) => {
+        return [
+          index + 1,
+          `${formatSrtTime(word.start_s)} --> ${formatSrtTime(word.end_s)}`,
+          cleanWord(word.word),
+          '',
+        ].join('\n');
+      })
+      .join('\n');
   }
 
   function toFormattedLrc(words, gapMs = 700, maxWords = 10) {
@@ -199,13 +241,11 @@
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-
     link.href = url;
     link.download = filename;
     link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
-
     setTimeout(() => {
       URL.revokeObjectURL(url);
       link.remove();
@@ -214,21 +254,16 @@
 
   async function fetchAlignedWords(songId, token) {
     const endpoint = `https://studio-api.prod.suno.com/api/gen/${songId}/aligned_lyrics/v2/`;
-    const headers = token
-      ? {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }
-      : {};
-
+    const headers = token ? {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    } : {};
     const response = await fetch(endpoint, {
       method: 'GET',
       headers,
       credentials: 'include',
     });
-
     if (!response.ok) throw new Error(`Aligned lyrics request failed: HTTP ${response.status}`);
-
     const data = await response.json();
     return data?.aligned_words || [];
   }
@@ -253,7 +288,6 @@
 
   function mountTools(songId, words) {
     document.getElementById(UI_ID)?.remove();
-
     const panel = document.createElement('div');
     panel.id = UI_ID;
     panel.style.cssText = [
@@ -265,32 +299,25 @@
       'flex-direction:column',
       'gap:8px',
     ].join(';');
-
     panel.appendChild(makeButton(`Download ${RAW_FILE_TYPE.toUpperCase()}`, '#4b5563', () => {
       const content = RAW_FILE_TYPE === 'srt' ? toSrt(words) : toRawLrc(words);
       downloadText(content, `${songId}.${RAW_FILE_TYPE}`);
     }));
-
     panel.appendChild(makeButton('Download Formatted LRC', '#2563eb', () => {
       downloadText(toFormattedLrc(words), `${songId}.formatted.lrc`);
     }));
-
     panel.appendChild(makeButton('Download SRT', '#0f766e', () => {
       downloadText(toSrt(words), `${songId}.srt`);
     }));
-
     document.body.appendChild(panel);
   }
 
   try {
     const songId = location.pathname.split('/').filter(Boolean).pop();
     const token = getCookie('__session');
-
     if (!songId) throw new Error('Could not determine the song ID from the current URL.');
-
     const words = await fetchAlignedWords(songId, token);
     if (!words.length) throw new Error('No aligned lyrics were returned for this song.');
-
     mountTools(songId, words);
     console.info('Suno lyrics download tools injected.');
   } catch (error) {
@@ -298,25 +325,5 @@
     alert(`Suno lyrics downloader failed: ${error.message}`);
   }
 })();</code></pre>
-
-  <h2>Troubleshooting</h2>
-
-  <h3><code>__session</code> is not visible</h3>
-  <p>Run this in the Suno page console:</p>
-  <pre><code>document.cookie.includes('__session')</code></pre>
-  <p>If it returns <code>false</code>, the session cookie may be <code>HttpOnly</code>, blocked by browser policy, or stored under a different scope.</p>
-
-  <h3>HTTP 401 or 403</h3>
-  <p>Refresh the Suno page, sign in again, and run the bookmarklet from the actual song page.</p>
-
-  <h3>No aligned lyrics found</h3>
-  <p>The selected song may not have word-level alignment data available.</p>
-
-  <h3>Download does not start</h3>
-  <p>Allow downloads for the Suno site in your browser.</p>
-
-  <h2>Security Notes</h2>
-  <p>The script runs locally in the current browser tab, reads the visible page session cookie, requests aligned lyric data from Suno, and creates local text downloads. It does not transmit tokens to external servers.</p>
-
 </body>
 </html>

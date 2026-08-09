@@ -184,7 +184,7 @@
     <pre><code id="jsCodeBlock">(async function () {
   'use strict';
 
-  const RAW_FILE_TYPE = 'lrc'; // Đổi thành 'srt' để tải tệp raw dạng SRT.
+  const RAW_FILE_TYPE = 'lrc'; // Change to 'srt' for raw SRT download.
   const UI_ID = 'suno-lyrics-download-tools';
 
   function getCookie(name) {
@@ -205,9 +205,7 @@
   function formatLrcTime(seconds) {
     const date = new Date(0);
     date.setMilliseconds(Number(seconds || 0) * 1000);
-    return `[${String(date.getUTCMinutes()).padStart(2, '0')}:${String(
-      date.getUTCSeconds()
-    ).padStart(2, '0')}.${String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0')}]`;
+    return `[${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')}.${String(Math.floor(date.getUTCMilliseconds() / 10)).padStart(2, '0')}]`;
   }
 
   function cleanWord(value) {
@@ -221,16 +219,14 @@
   }
 
   function toSrt(words) {
-    return words
-      .map((word, index) => {
-        return [
-          index + 1,
-          `${formatSrtTime(word.start_s)} --> ${formatSrtTime(word.end_s)}`,
-          cleanWord(word.word),
-          '',
-        ].join('\n');
-      })
-      .join('\n');
+    return words.map((word, index) => {
+      return [
+        index + 1,
+        `${formatSrtTime(word.start_s)} --> ${formatSrtTime(word.end_s)}`,
+        cleanWord(word.word),
+        '',
+      ].join('\n');
+    }).join('\n');
   }
 
   function toFormattedLrc(words, gapMs = 700, maxWords = 10) {
@@ -253,7 +249,7 @@
       const lengthBreak = count >= maxWords;
 
       if (text && (gapBreak || lengthBreak)) {
-        lines.push(`${timestamp}${text}`);
+        lines.push(`${timestamp} ${text}`);
         text = '';
         count = 0;
       }
@@ -270,7 +266,7 @@
       previousStart = startMs;
     }
 
-    if (text) lines.push(`${timestamp}${text}`);
+    if (text) lines.push(`${timestamp} ${text}`);
     return lines.join('\n');
   }
 
@@ -278,11 +274,13 @@
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
+
     link.href = url;
     link.download = filename;
     link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
+
     setTimeout(() => {
       URL.revokeObjectURL(url);
       link.remove();
@@ -291,16 +289,21 @@
 
   async function fetchAlignedWords(songId, token) {
     const endpoint = `https://studio-api.prod.suno.com/api/gen/${songId}/aligned_lyrics/v2/`;
-    const headers = token ? {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    } : {};
+    const headers = token
+      ? {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      : {};
+
     const response = await fetch(endpoint, {
       method: 'GET',
       headers,
       credentials: 'include',
     });
+
     if (!response.ok) throw new Error(`Aligned lyrics request failed: HTTP ${response.status}`);
+
     const data = await response.json();
     return data?.aligned_words || [];
   }
@@ -325,6 +328,7 @@
 
   function mountTools(songId, words) {
     document.getElementById(UI_ID)?.remove();
+
     const panel = document.createElement('div');
     panel.id = UI_ID;
     panel.style.cssText = [
@@ -336,25 +340,32 @@
       'flex-direction:column',
       'gap:8px',
     ].join(';');
+
     panel.appendChild(makeButton(`Download ${RAW_FILE_TYPE.toUpperCase()}`, '#4b5563', () => {
       const content = RAW_FILE_TYPE === 'srt' ? toSrt(words) : toRawLrc(words);
       downloadText(content, `${songId}.${RAW_FILE_TYPE}`);
     }));
+
     panel.appendChild(makeButton('Download Formatted LRC', '#2563eb', () => {
       downloadText(toFormattedLrc(words), `${songId}.formatted.lrc`);
     }));
+
     panel.appendChild(makeButton('Download SRT', '#0f766e', () => {
       downloadText(toSrt(words), `${songId}.srt`);
     }));
+
     document.body.appendChild(panel);
   }
 
   try {
     const songId = location.pathname.split('/').filter(Boolean).pop();
     const token = getCookie('__session');
+
     if (!songId) throw new Error('Could not determine the song ID from the current URL.');
+
     const words = await fetchAlignedWords(songId, token);
     if (!words.length) throw new Error('No aligned lyrics were returned for this song.');
+
     mountTools(songId, words);
     console.info('Suno lyrics download tools injected.');
   } catch (error) {

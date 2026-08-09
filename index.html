@@ -53,10 +53,44 @@
       margin: 1em 0;
     }
 
+    /* Container cho ô Code + Nút Copy */
+    .code-container {
+      position: relative;
+      margin-top: 1rem;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .copy-btn:hover {
+      background-color: var(--border-color);
+      color: #ffffff;
+    }
+
+    .copy-btn.copied {
+      background-color: var(--button-bg);
+      color: #ffffff;
+      border-color: var(--button-bg);
+    }
+
     pre {
       background-color: var(--code-bg);
       color: #e6edf3;
       padding: 1rem;
+      padding-top: 2.5rem; /* Dành khoảng trống cho nút Copy */
       border-radius: 6px;
       border: 1px solid var(--border-color);
       overflow-x: auto;
@@ -132,19 +166,22 @@
         <li>Trên macOS: Nhấn `Cmd + Shift + B`</li>
       </ul>
     </li>
-    <li>Kéo và thả nút màu xanh dưới đây lên thanh dấu trang của bạn.</li>
-    <li>Truy cập trang bài hát trên Suno (ví dụ: `https://suno.com/song/...`).</li>
+    <li>Kéo và thả nút màu xanh dưới đây lên thanh dấu trang Bookmark bar của bạn.</li>
+    <li>Truy cập và PLAY bài hát của BẠN trên Suno (ví dụ: `https://suno.com/song/...`). Link phải có suno.com/song/.....</li>
     <li>Nhấn vào Bookmarklet bạn vừa thêm trên thanh dấu trang.</li>
     <li>Các nút tải lời bài hát sẽ xuất hiện ở góc dưới bên phải màn hình.</li>
   </ol>
 
   <div class="bookmarklet-container">
-    <a class="bookmarklet-button" href="javascript:(function(){'use strict';const RAW_FILE_TYPE='lrc',UI_ID='suno-lyrics-download-tools';function getCookie(e){const t=`; ${document.cookie}`.split(`; ${e}=`);return t.length>1?t.pop().split(';')[0]:null}function formatSrtTime(e){const t=new Date(0);return t.setMilliseconds(1e3*Number(e||0)),[String(t.getUTCHours()).padStart(2,'0'),String(t.getUTCMinutes()).padStart(2,'0'),String(t.getUTCSeconds()).padStart(2,'0')].join(':')+`,${String(t.getUTCMilliseconds()).padStart(3,'0')}`}function formatLrcTime(e){const t=new Date(0);return t.setMilliseconds(1e3*Number(e||0)),`[${String(t.getUTCMinutes()).padStart(2,'0')}:${String(t.getUTCSeconds()).padStart(2,'0')}.${String(Math.floor(t.getUTCMilliseconds()/10)).padStart(2,'0')}]`}function cleanWord(e){return String(e||'').replace(/\[.*?\]/g,'').trim()}function toRawLrc(e){return e.map((e=>`${formatLrcTime(e.start_s)}${cleanWord(e.word)}`)).join('\n')}function toSrt(e){return e.map(((e,t)=>[t+1,`${formatSrtTime(e.start_s)} --> ${formatSrtTime(e.end_s)}`,cleanWord(e.word),''].join('\n'))).join('\n')}function toFormattedLrc(e,t=700,n=10){const o=[];let r='',s=null,a=null,i=0;for(const c of e){const e=1e3*Number(c.start_s||0),l=cleanWord(c.word);if(l){const u=null!==a&&e-a>t,g=i>=n;r&&(u||g)&&(o.push(`${s}${r}`),r='',i=0),r?r+=` ${l}`:(s=formatLrcTime(c.start_s),r=l),i+=1,a=e}else a=e}return r&&o.push(`${s}${r}`),o.join('\n')}function downloadText(e,t){const n=new Blob([e],{type:'text/plain;charset=utf-8'}),o=URL.createObjectURL(n),r=document.createElement('a');r.href=o,r.download=t,r.style.display='none',document.body.appendChild(r),r.click(),setTimeout((()=>{URL.revokeObjectURL(o),r.remove()}),500)}async function fetchAlignedWords(e,t){const n=`https://studio-api.prod.suno.com/api/gen/${e}/aligned_lyrics/v2/`,o=t?{Authorization:`Bearer ${t}`,'Content-Type':'application/json'}:{},r=await fetch(n,{method:'GET',headers:o,credentials:'include'});if(!r.ok)throw new Error(`Aligned lyrics request failed: HTTP ${r.status}`);return(await r.json())?.aligned_words||[]}function makeButton(e,t,n){const o=document.createElement('button');return o.textContent=e,o.type='button',o.style.cssText=['padding:10px 12px','border:0','border-radius:8px',`background:${t}`,'color:#fff','font:600 14px system-ui,sans-serif','cursor:pointer','box-shadow:0 4px 12px rgba(0,0,0,.2)'].join(';'),o.addEventListener('click',n),o}async function init(){try{const e=location.pathname.split('/').filter(Boolean).pop(),t=getCookie('__session');if(!e)throw new Error('Không tìm thấy ID bài hát từ URL.');const n=await fetchAlignedWords(e,t);if(!n.length)throw new Error('Bài hát này chưa có dữ liệu aligned lyrics.');document.getElementById(UI_ID)?.remove();const o=document.createElement('div');o.id=UI_ID,o.style.cssText=['position:fixed','right:16px','bottom:16px','z-index:999999','display:flex','flex-direction:column','gap:8px'].join(';'),o.appendChild(makeButton(`Download ${RAW_FILE_TYPE.toUpperCase()}`,'#4b5563',(()=>{downloadText('srt'===RAW_FILE_TYPE?toSrt(n):toRawLrc(n),`${e}.${RAW_FILE_TYPE}`)}))),o.appendChild(makeButton('Download Formatted LRC','#2563eb',(()=>{downloadText(toFormattedLrc(n),`${e}.formatted.lrc`)}))),o.appendChild(makeButton('Download SRT','#0f766e',(()=>{downloadText(toSrt(n),`${e}.srt`)}))),document.body.appendChild(o)}catch(e){console.error(e),alert(`Lỗi: ${e.message}`)}}init();})();">Kéo tôi lên thanh dấu trang</a>
+    <a class="bookmarklet-button" href="javascript:(function(){'use strict';const RAW_FILE_TYPE='lrc',UI_ID='suno-lyrics-download-tools';function getCookie(e){const t=`; ${document.cookie}`.split(`; ${e}=`);return t.length>1?t.pop().split(';')[0]:null}function formatSrtTime(e){const t=new Date(0);return t.setMilliseconds(1e3*Number(e||0)),[String(t.getUTCHours()).padStart(2,'0'),String(t.getUTCMinutes()).padStart(2,'0'),String(t.getUTCSeconds()).padStart(2,'0')].join(':')+`,${String(t.getUTCMilliseconds()).padStart(3,'0')}`}function formatLrcTime(e){const t=new Date(0);return t.setMilliseconds(1e3*Number(e||0)),`[${String(t.getUTCMinutes()).padStart(2,'0')}:${String(t.getUTCSeconds()).padStart(2,'0')}.${String(Math.floor(t.getUTCMilliseconds()/10)).padStart(2,'0')}]`}function cleanWord(e){return String(e||'').replace(/\[.*?\]/g,'').trim()}function toRawLrc(e){return e.map((e=>`${formatLrcTime(e.start_s)}${cleanWord(e.word)}`)).join('\n')}function toSrt(e){return e.map(((e,t)=>[t+1,`${formatSrtTime(e.start_s)} --> ${formatSrtTime(e.end_s)}`,cleanWord(e.word),''].join('\n'))).join('\n')}function toFormattedLrc(e,t=700,n=10){const o=[];let r='',s=null,a=null,i=0;for(const c of e){const e=1e3*Number(c.start_s||0),l=cleanWord(c.word);if(l){const u=null!==a&&e-a>t,g=i>=n;r&&(u||g)&&(o.push(`${s}${r}`),r='',i=0),r?r+=` ${l}`:(s=formatLrcTime(c.start_s),r=l),i+=1,a=e}else a=e}return r&&o.push(`${s}${r}`),o.join('\n')}function downloadText(e,t){const n=new Blob([e],{type:'text/plain;charset=utf-8'}),o=URL.createObjectURL(n),r=document.createElement('a');r.href=o,r.download=t,r.style.display='none',document.body.appendChild(r),r.click(),setTimeout((()=>{URL.revokeObjectURL(o),r.remove()}),500)}async function fetchAlignedWords(e,t){const n=`https://studio-api.prod.suno.com/api/gen/${e}/aligned_lyrics/v2/`,o=t?{Authorization:`Bearer ${t}`,'Content-Type':'application/json'}:{},r=await fetch(n,{method:'GET',headers:o,credentials:'include'});if(!r.ok)throw new Error(`Aligned lyrics request failed: HTTP ${r.status}`);return(await r.json())?.aligned_words||[]}function makeButton(e,t,n){const o=document.createElement('button');return o.textContent=e,o.type='button',o.style.cssText=['padding:10px 12px','border:0','border-radius:8px',`background:${t}`,'color:#fff','font:600 14px system-ui,sans-serif','cursor:pointer','box-shadow:0 4px 12px rgba(0,0,0,.2)'].join(';'),o.addEventListener('click',n),o}async function init(){try{const e=location.pathname.split('/').filter(Boolean).pop(),t=getCookie('__session');if(!e)throw new Error('Không tìm thấy ID bài hát từ URL.');const n=await fetchAlignedWords(e,t);if(!n.length)throw new Error('Bài hát này chưa có dữ liệu aligned lyrics.');document.getElementById(UI_ID)?.remove();const o=document.createElement('div');o.id=UI_ID,o.style.cssText=['position:fixed','right:16px','bottom:16px','z-index:999999','display:flex','flex-direction:column','gap:8px'].join(';'),o.appendChild(makeButton(`Download ${RAW_FILE_TYPE.toUpperCase()}`,'#4b5563',(()=>{downloadText('srt'===RAW_FILE_TYPE?toSrt(n):toRawLrc(n),`${e}.${RAW_FILE_TYPE}`)}))),o.appendChild(makeButton('Download Formatted LRC','#2563eb',(()=>{downloadText(toFormattedLrc(n),`${e}.formatted.lrc`)}))),o.appendChild(makeButton('Download SRT','#0f766e',(()=>{downloadText(toSrt(n),`${e}.srt`)}))),document.body.appendChild(o)}catch(e){console.error(e),alert(`Lỗi: ${e.message}`)}}init();})();">SUNO LRC - Kéo tôi lên thanh Bookmark</a>
   </div>
 
   <h2>Mã JavaScript (dành cho Console)</h2>
   <p>Nếu bạn không muốn sử dụng Bookmarklet, bạn có thể dán mã này vào Console của DevTools trên trang bài hát:</p>
-  <pre><code>(async function () {
+
+  <div class="code-container">
+    <button class="copy-btn" id="copyCodeBtn">Sao chép mã</button>
+    <pre><code id="jsCodeBlock">(async function () {
   'use strict';
 
   const RAW_FILE_TYPE = 'lrc'; // Đổi thành 'srt' để tải tệp raw dạng SRT.
@@ -325,5 +362,25 @@
     alert(`Suno lyrics downloader failed: ${error.message}`);
   }
 })();</code></pre>
+  </div>
+
+  <script>
+    document.getElementById('copyCodeBtn').addEventListener('click', function() {
+      const codeText = document.getElementById('jsCodeBlock').innerText;
+      const btn = this;
+
+      navigator.clipboard.writeText(codeText).then(() => {
+        btn.textContent = 'Đã sao chép!';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.textContent = 'Sao chép mã';
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Lỗi khi sao chép mã:', err);
+      });
+    });
+  </script>
 </body>
 </html>
